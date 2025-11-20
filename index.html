@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sports Stream Hub — Neon</title>
+<style>
+:root{ --bg:#07090b; --card:#0f1316; --glow:#00e1a7; --muted:#bfc8cc; }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  background:linear-gradient(180deg,#040506,#071018);
+  font-family:Inter,system-ui,Arial;
+  color:#e8eef0;
+}
+.wrap{max-width:1200px;margin:28px auto;padding:20px;}
+header{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.logo{
+  width:52px;height:52px;border-radius:12px;
+  background:#0d1a21;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 18px rgba(0,225,167,0.12);
+}
+.logo img{
+  width:48px;height:48px;border-radius:10px;object-fit:cover;
+}
+.title h2{margin:0;font-size:22px}
+.title p{margin:4px 0 0;color:var(--muted);font-size:13px}
+.search{display:flex;gap:10px;margin-top:8px}
+.search input{
+  flex:1;padding:10px 12px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:rgba(255,255,255,0.02);
+  color:#e8eef0;
+}
+.search button{
+  padding:10px 14px;border-radius:10px;
+  border:none;background:var(--glow);
+  color:#02110f;font-weight:700;cursor:pointer;
+}
+.pills{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+.pill{
+  padding:8px 14px;border-radius:999px;
+  background:rgba(255,255,255,0.02);
+  border:1px solid rgba(255,255,255,0.03);
+  color:var(--muted);cursor:pointer;
+}
+.pill.active{
+  box-shadow:0 0 18px rgba(0,225,167,0.12);
+  border-color:rgba(0,225,167,0.28);
+  color:var(--glow);
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:18px;margin-top:18px;
+}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,0.012), rgba(0,0,0,0.02));
+  border-radius:14px;padding:18px;
+  border:1px solid rgba(255,255,255,0.03);
+  text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px;
+  transition:transform .25s, box-shadow .25s;
+}
+.card:hover{
+  transform:translateY(-5px);
+  box-shadow:0 20px 40px rgba(0,225,167,0.1);
+}
+.logo-square{
+  width:96px;height:96px;border-radius:12px;
+  background:#0b0f12;display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(255,255,255,0.02);
+}
+.logo-square img{
+  max-width:86px;max-height:86px;border-radius:8px;object-fit:contain;
+}
+.ch-name{font-weight:700}
+.ch-sub{color:var(--muted);font-size:13px}
+.btn-row{display:flex;gap:8px;width:100%}
+.btn{
+  flex:1;padding:10px;border-radius:10px;
+  border:none;font-weight:700;cursor:pointer;
+}
+.watch{
+  background:linear-gradient(90deg,var(--glow),#22b8ff);
+  color:#041313;
+}
+.details{
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.04);
+  color:var(--muted);
+}
+.popup{
+  position:fixed;inset:0;display:none;
+  align-items:center;justify-content:center;
+  background:rgba(0,0,0,0.6);z-index:9999;
+}
+.popup.show{display:flex}
+.popup-card{
+  width:92%;max-width:460px;
+  background:#0d1114;border-radius:16px;
+  padding:20px;text-align:center;
+  border:1px solid rgba(255,255,255,0.04);
+  position:relative;
+}
+.popup .x{
+  position:absolute;right:16px;top:12px;
+  border:none;background:none;color:#ddd;
+  font-size:20px;cursor:pointer;
+}
+.popup-logo{
+  width:110px;height:110px;object-fit:contain;
+  margin:8px auto;
+}
+.player-overlay{
+  position:fixed;inset:0;display:none;
+  align-items:center;justify-content:center;
+  background:linear-gradient(180deg,rgba(0,0,0,0.85),rgba(0,0,0,0.95));
+  z-index:10000;
+}
+.player-overlay.show{display:flex}
+.player-box{
+  width:100%;max-width:980px;
+  background:#000;border-radius:12px;padding:12px;
+}
+video{
+  width:100%;border-radius:10px;
+  border:4px solid transparent;
+  transition:border-color .25s;
+}
+video.playing{border-color:var(--glow)}
+.controls-row{display:flex;gap:10px;align-items:center;margin-top:8px}
+.audio-toggle{
+  padding:8px 12px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.04);
+  background:#0d1114;color:#fff;cursor:pointer;
+}
+.footer{
+  margin-top:20px;text-align:center;
+  color:var(--muted);font-weight:700;
+}
+@media (max-width:520px){
+  .logo-square{width:84px;height:84px}
+  .popup-card{padding:16px}
+  .popup-logo{width:90px;height:90px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">
+      <img src="https://i.postimg.cc/KY9QBnLZ/IMG-20251120-WA0003.jpg"
+           alt="SportsStream Hub Logo">
+    </div>
+    <div class="title">
+      <h2>Sports Stream Hub</h2>
+      <p>Neon UI • Sports</p>
+    </div>
+  </header>
+
+  <div class="search">
+    <input id="searchInput" placeholder="Search channels..." />
+    <button id="searchBtn">Search</button>
+  </div>
+
+  <div class="pills" id="categoryPills">
+    <div class="pill active" data-filter="all">All</div>
+    <div class="pill" data-filter="cricket">Cricket</div>
+    <div class="pill" data-filter="intl">International</div>
+  </div>
+
+  <section class="grid" id="channelGrid"></section>
+
+  <div class="footer">MADE BY @ATONIZ715 &amp; @RKDYIPTV</div>
+</div>
+
+<!-- Popup -->
+<div class="popup" id="telegramPopup">
+  <div class="popup-card">
+    <button class="x" id="popupClose">✕</button>
+    <img id="popupLogo" class="popup-logo" src="" alt="logo">
+    <h3 id="popupTitle"></h3>
+    <p>Join our Telegram to get links &amp; updates.</p>
+    <div style="display:flex;justify-content:center;gap:12px;margin-top:14px">
+      <a id="joinBtn" class="btn watch" href="#" target="_blank">Join</a>
+      <a id="backupBtn" class="btn details" href="#" target="_blank">Backup</a>
+    </div>
+  </div>
+</div>
+
+<!-- Player -->
+<div class="player-overlay" id="playerOverlay">
+  <div class="player-box">
+    <button onclick="closePlayer()" style="float:right;margin-bottom:8px;padding:6px 10px;border-radius:8px;background:#111;color:#fff;border:none">
+      Close
+    </button>
+    <video id="player" controls playsinline></video>
+    <div class="controls-row">
+      <button id="audioToggle" class="audio-toggle">Audio: On</button>
+    </div>
+    <audio id="audioPlayer"></audio>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script>
+// Config
+const TELEGRAM_PRIMARY = 'https://t.me/rkdyiptv';
+const TELEGRAM_BACKUP  = 'https://t.me/+2j4Bc7duxg8yYWI1';
+
+// Channels (real URLs)
+const channels = [
+  {
+    id:'sony-ten-1',
+    name:'SONY TEN 1 HD',
+    subtitle:'Sports',
+    logo:'https://static.wikia.nocookie.net/logopedia/images/e/ed/Sony_Sports_Ten_1.png/revision/latest?cb=20221025083646',
+    stream:'http://103.240.44.26/Sony-Ten-1-HD/tracks-v1/index.fmp4.m3u8',
+    audio:'http://103.240.44.26/Sony-Ten-1-HD/tracks-a1/index.fmp4.m3u8',
+    tags:['cricket'] // only in Cricket category
+  },
+  {
+    id:'sony-ten-2',
+    name:'SONY TEN 2 HD',
+    subtitle:'Sports',
+    logo:'https://static.wikia.nocookie.net/logopedia/images/3/30/Sony_Sports_Ten_2.png/revision/latest?cb=20221025084500',
+    stream:'http://103.240.44.26/Sony-Ten-2-HD/tracks-v1/index.fmp4.m3u8',
+    audio:'http://103.240.44.26/Sony-Ten-2-HD/tracks-a1/index.fmp4.m3u8',
+    tags:['cricket'] // only in Cricket category
+  },
+  {
+    id:'astro-cricket',
+    name:'ASTRO CRICKET',
+    subtitle:'Regional Cricket',
+    logo:'https://upload.wikimedia.org/wikipedia/commons/b/b7/Astro_Cricket.png',
+    stream:'http://103.240.44.26/Astro-Cricket/tracks-v1/index.fmp4.m3u8',
+    audio:'http://103.240.44.26/Astro-Cricket/tracks-a1/index.fmp4.m3u8',
+    tags:['cricket']
+  },
+  {
+    id:'espn',
+    name:'ESPN',
+    subtitle:'International Sports',
+    logo:'https://static.wikia.nocookie.net/logopedia/images/3/34/ESPN.svg/revision/latest?cb=20201130040927',
+    stream:'http://23.237.104.106:8080/USA_ESPNU/tracks-v1a1/mono.m3u8',
+    audio:null,
+    tags:['intl']  // only channel in International
+  }
+];
+
+// DOM refs
+const grid        = document.getElementById('channelGrid');
+const searchInput = document.getElementById('searchInput');
+const searchBtn   = document.getElementById('searchBtn');
+const pills       = document.getElementById('categoryPills');
+
+const popup       = document.getElementById('telegramPopup');
+const popupLogo   = document.getElementById('popupLogo');
+const popupTitle  = document.getElementById('popupTitle');
+const joinBtn     = document.getElementById('joinBtn');
+const backupBtn   = document.getElementById('backupBtn');
+const popupClose  = document.getElementById('popupClose');
+
+const playerOverlay = document.getElementById('playerOverlay');
+const player        = document.getElementById('player');
+const audioPlayer   = document.getElementById('audioPlayer');
+const audioToggle   = document.getElementById('audioToggle');
+
+let hls = null;
+let currentChannel = null;
+let audioEnabled = true; // Q1: A (audio resumes instantly when toggled on)
+
+// Render grid
+function renderGrid(list = channels){
+  grid.innerHTML = list.map(ch => `
+    <article class="card">
+      <div class="logo-square"><img src="${ch.logo}" alt="${ch.name}"></div>
+      <div class="ch-name">${ch.name}</div>
+      <div class="ch-sub">${ch.subtitle}</div>
+      <div class="btn-row">
+        <button class="btn watch" onclick="onWatch('${ch.id}')">Watch</button>
+        <button class="btn details" onclick="openPopup('${ch.logo}','${ch.name}')">Details</button>
+      </div>
+    </article>
+  `).join('');
+}
+renderGrid();
+
+// Search
+function doSearch(){
+  const q = searchInput.value.trim().toLowerCase();
+  if(!q){
+    renderGrid();
+    return;
+  }
+  renderGrid(
+    channels.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.subtitle.toLowerCase().includes(q)
+    )
+  );
+}
+searchBtn.addEventListener('click', doSearch);
+searchInput.addEventListener('keyup', e => { if(e.key === 'Enter') doSearch(); });
+
+// Filters
+pills.addEventListener('click', e => {
+  const pill = e.target.closest('.pill');
+  if(!pill) return;
+  document.querySelectorAll('.pill').forEach(x => x.classList.remove('active'));
+  pill.classList.add('active');
+  const f = pill.dataset.filter;
+  if(f === 'all') {
+    renderGrid();
+  } else {
+    renderGrid(channels.filter(c => c.tags.includes(f)));
+  }
+});
+
+// Popup (Q2: A – show before Watch)
+function openPopup(logoUrl, title, isWatch=false){
+  popupLogo.src = logoUrl || '';
+  popupTitle.textContent = title || '';
+  joinBtn.href   = TELEGRAM_PRIMARY;
+  backupBtn.href = TELEGRAM_BACKUP;
+
+  popup.dataset.fromWatch = isWatch ? '1' : '0';
+
+  if(isWatch){
+    joinBtn.onclick   = () => { closePopup(true); };
+    backupBtn.onclick = () => { closePopup(true); };
+  } else {
+    joinBtn.onclick   = null;
+    backupBtn.onclick = null;
+  }
+
+  popup.classList.add('show');
+}
+function closePopup(startPlayer=false){
+  popup.classList.remove('show');
+  if(startPlayer || popup.dataset.fromWatch === '1'){
+    continueToPlayer();
+  }
+}
+popupClose.addEventListener('click', () => closePopup(false));
+popup.addEventListener('click', e => { if(e.target === popup) closePopup(false); });
+
+// Player flow
+function onWatch(id){
+  currentChannel = channels.find(c => c.id === id);
+  if(!currentChannel) return;
+  openPopup(currentChannel.logo, currentChannel.name, true);
+}
+
+function continueToPlayer(){
+  const ch = currentChannel;
+  if(!ch) return;
+
+  playerOverlay.classList.add('show');
+
+  // Destroy previous instance
+  if(hls){
+    hls.destroy();
+    hls = null;
+  }
+
+  const videoSrc = ch.stream && !ch.stream.includes('example.com')
+    ? ch.stream
+    : 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4';
+
+  // HLS handling
+  try {
+    if(Hls.isSupported()){
+      hls = new Hls();
+      hls.loadSource(videoSrc);
+      hls.attachMedia(player);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        player.play().catch(()=>{});
+        player.classList.add('playing');
+      });
+    } else if(player.canPlayType('application/vnd.apple.mpegurl')){
+      player.src = videoSrc;
+      player.addEventListener('loadedmetadata', () => {
+        player.play().catch(()=>{});
+        player.classList.add('playing');
+      }, { once:true });
+    } else {
+      player.src = videoSrc;
+      player.play().catch(()=>{});
+      player.classList.add('playing');
+    }
+  } catch(e){
+    player.src = videoSrc;
+    player.play().catch(()=>{});
+    player.classList.add('playing');
+  }
+
+  // Audio (for channels that have audio)
+  if(ch.audio && audioEnabled){
+    audioPlayer.src = ch.audio;
+    audioPlayer.play().catch(()=>{ console.warn('Audio autoplay blocked'); });
+  } else {
+    try{
+      audioPlayer.pause();
+      audioPlayer.removeAttribute('src');
+    }catch(e){}
+  }
+
+  // Update button label
+  audioToggle.textContent = audioEnabled ? 'Audio: On' : 'Audio: Off';
+}
+
+function closePlayer(){
+  if(hls){
+    hls.destroy();
+    hls = null;
+  }
+  try{
+    player.pause();
+    player.removeAttribute('src');
+    player.classList.remove('playing');
+  }catch(e){}
+  try{
+    audioPlayer.pause();
+    audioPlayer.removeAttribute('src');
+  }catch(e){}
+  playerOverlay.classList.remove('show');
+  currentChannel = null;
+}
+
+// Audio toggle (Q1: A – resume instantly when turned ON)
+audioToggle.addEventListener('click', () => {
+  // Flip global flag
+  audioEnabled = !audioEnabled;
+  audioToggle.textContent = audioEnabled ? 'Audio: On' : 'Audio: Off';
+
+  // If no channel yet, just change flag – audio will apply next time
+  if(!currentChannel){
+    try{
+      audioPlayer.pause();
+      audioPlayer.removeAttribute('src');
+    }catch(e){}
+    return;
+  }
+
+  // Always stop current audio first
+  try{
+    audioPlayer.pause();
+    audioPlayer.removeAttribute('src');
+  }catch(e){}
+
+  // If turning ON and current channel has audio, start it immediately
+  if(audioEnabled && currentChannel.audio){
+    audioPlayer.src = currentChannel.audio;
+    audioPlayer.load();
+    audioPlayer.play().catch(() => console.warn('Audio failed to start'));
+  }
+});
+
+// Keyboard: Esc closes player & popup
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){
+    closePlayer();
+    closePopup(false);
+  }
+});
+</script>
+</body>
+</html>
